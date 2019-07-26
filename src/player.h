@@ -527,7 +527,7 @@ class Player final : public Creature, public Cylinder
 		void onTargetCreatureGainHealth(Creature* target, int32_t points) final;
 		bool onKilledCreature(Creature* target, bool lastHit = true) final;
 		void onGainExperience(uint64_t gainExp, Creature* target) final;
-		void onGainSharedExperience(uint64_t gainExp);
+		void onGainSharedExperience(uint64_t gainExp, Creature* source);
 		void onAttackedCreatureBlockHit(BlockType_t blockType) final;
 		void onBlockHit() final;
 		void onChangeZone(ZoneType_t zone) final;
