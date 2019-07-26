@@ -937,7 +937,8 @@ void BehaviourDatabase::checkAction(const NpcBehaviourAction* action, Player* pl
 	}
 	case BEHAVIOUR_TYPE_EXPERIENCE: {
 		int32_t experience = evaluate(action->expression, player, message);
-		player->addExperience(nullptr, experience, false);
+		// player->addExperience(nullptr, experience, false);
+		player->addExperience(experience, true, false);
 		break;
 	}
 	case BEHAVIOUR_TYPE_WITHDRAW: {
