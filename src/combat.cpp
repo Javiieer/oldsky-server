@@ -451,8 +451,6 @@ void Combat::CombatHealthFunc(Creature* caster, Creature* target, const CombatPa
 		CombatConditionFunc(caster, target, params, &damage);
 		CombatDispelFunc(caster, target, params, nullptr);
 	}
-
-	return true;
 }
 
 void Combat::CombatManaFunc(Creature* caster, Creature* target, const CombatParams& params, CombatDamage* data)
@@ -476,7 +474,7 @@ void Combat::CombatManaFunc(Creature* caster, Creature* target, const CombatPara
 	}
 }
 
-void Combat::CombatConditionFunc(Creature* caster, Creature* target, const CombatParams& params, CombatDamage*)
+void Combat::CombatConditionFunc(Creature* caster, Creature* target, const CombatParams& params, CombatDamage* data)
 {
 	if (params.origin == ORIGIN_MELEE && data && data->value == 0) {
 		return;
