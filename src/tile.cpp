@@ -1526,7 +1526,6 @@ Item* Tile::getUseItem(int32_t index) const
 
 	if (Thing* thing = getThing(index)) {
 		return thing->getItem();
-		}
 	}
 
 	return nullptr;
