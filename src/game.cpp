@@ -2870,11 +2870,7 @@ void Game::playerRequestOutfit(uint32_t playerId)
 }
 
 void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit)
-{
-	if (!g_events->eventCreatureOnChangeOutfit(creature, outfit)) {
-		return;
-	}
-	
+{	
 	if (!g_config.getBoolean(ConfigManager::ALLOW_CHANGEOUTFIT)) {
 		return;
 	}
@@ -3221,6 +3217,10 @@ void Game::changeSpeed(Creature* creature, int32_t varSpeedDelta)
 
 void Game::internalCreatureChangeOutfit(Creature* creature, const Outfit_t& outfit)
 {
+	if (!g_events->eventCreatureOnChangeOutfit(creature, outfit)) {
+		return;
+	}
+	
 	creature->setCurrentOutfit(outfit);
 
 	if (creature->isInvisible()) {
