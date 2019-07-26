@@ -33,8 +33,11 @@
 	<talkaction words="/ghost" script="ghost.lua" />
 	<talkaction words="/clean" script="clean.lua" />
 	<talkaction words="/storagevalue" separator=" " script="storagevalue.lua" />
+	<talkaction words="/reload" separator=" " script="reload.lua" />
+	<talkaction words="/save" script="save.lua" />
 
 	<!-- player talkactions -->
+	<talkaction words="!sellhouse" separator=" " script="sellhouse.lua" />
 	<talkaction words="!buypremium" script="buyprem.lua"/>
 	<talkaction words="!buyhouse" script="buyhouse.lua"/>
 	<talkaction words="!leavehouse" script="leavehouse.lua"/>
