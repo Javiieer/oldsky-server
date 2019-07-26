@@ -345,6 +345,11 @@ enum ReturnValue {
 	RETURNVALUE_CANONLYUSEONESHIELD,
 	RETURNVALUE_NOPARTYMEMBERSINRANGE,
 	RETURNVALUE_YOUARENOTTHEOWNER,
+	RETURNVALUE_TRADEPLAYERFARAWAY,
+	RETURNVALUE_YOUDONTOWNTHISHOUSE,
+	RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE,
+	RETURNVALUE_TRADEPLAYERHIGHESTBIDDER,
+	RETURNVALUE_YOUCANNOTTRADETHISHOUSE,
 };
 
 struct Outfit_t {
@@ -363,6 +368,15 @@ struct LightInfo {
 	constexpr LightInfo(uint8_t level, uint8_t color) : level(level), color(color) {}
 };
 
+enum CombatOrigin
+{
+	ORIGIN_NONE,
+	ORIGIN_CONDITION,
+	ORIGIN_SPELL,
+	ORIGIN_MELEE,
+	ORIGIN_RANGED,
+};
+
 struct CombatDamage
 {
 	CombatType_t type;
@@ -370,8 +384,10 @@ struct CombatDamage
 	int32_t min;
 	int32_t max;
 
+	CombatOrigin origin;
 	CombatDamage()
 	{
+		origin = ORIGIN_NONE;
 		type = COMBAT_NONE;
 		value = 0;
 		min = 0;

@@ -26,6 +26,7 @@
 #include "combat.h"
 #include "configmanager.h"
 #include "creatureevent.h"
+#include "events.h"
 #include "game.h"
 #include "iologindata.h"
 #include "monster.h"
@@ -38,6 +39,7 @@ extern Chat* g_chat;
 extern Vocations g_vocations;
 extern MoveEvents* g_moveEvents;
 extern CreatureEvents* g_creatureEvents;
+extern Events* g_events;
 
 MuteCountMap Player::muteCountMap;
 
@@ -344,11 +346,7 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count)
 		return;
 	}
 
-	if (skill == SKILL_MAGLEVEL) {
-		count *= g_config.getNumber(g_config.RATE_MAGIC);
-	} else {
-		count *= g_config.getNumber(g_config.RATE_SKILL);
-	}
+	g_events->eventPlayerOnGainSkillTries(this, skill, count);
 
 	if (count == 0) {
 		return;
@@ -411,7 +409,7 @@ void Player::setVarStats(stats_t stat, int32_t modifier)
 
 		case STAT_MAXMANAPOINTS: {
 			if (getMana() > getMaxMana()) {
-				Creature::changeMana(getMaxMana() - getMana());
+				changeMana(getMaxMana() - getMana());
 			}
 			break;
 		}
@@ -1224,7 +1222,12 @@ void Player::drainHealth(Creature* attacker, int32_t damage)
 
 void Player::drainMana(Creature* attacker, int32_t manaLoss)
 {
-	Creature::drainMana(attacker, manaLoss);
+	onAttacked();
+	changeMana(-manaLoss);
+
+	if (attacker) {
+		addDamagePoints(attacker, manaLoss);
+	}
 	sendStats();
 }
 
@@ -1241,7 +1244,7 @@ void Player::addManaSpent(uint64_t amount)
 		return;
 	}
 
-	amount *= g_config.getNumber(g_config.RATE_MAGIC);
+	g_events->eventPlayerOnGainSkillTries(this, SKILL_MAGLEVEL, amount);
 
 	if (amount == 0) {
 		return;
@@ -1286,10 +1289,12 @@ void Player::addManaSpent(uint64_t amount)
 	}
 }
 
-void Player::addExperience(uint64_t exp, bool sendText/* = false*/, bool applyStages/* = true*/)
+void Player::addExperience(Creature* source, uint64_t exp, bool sendText/* = false*/)
 {
 	uint64_t currLevelExp = Player::getExpForLevel(level);
 	uint64_t nextLevelExp = Player::getExpForLevel(level + 1);
+	uint64_t rawExp = exp;
+	
 	if (currLevelExp >= nextLevelExp) {
 		//player has reached max level
 		levelPercent = 0;
@@ -1297,16 +1302,7 @@ void Player::addExperience(uint64_t exp, bool sendText/* = false*/, bool applySt
 		return;
 	}
 
-	if (getSoul() < getVocation()->getSoulMax() && exp >= level) {
-		Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SOUL, 4 * 60 * 1000, 0);
-		condition->setParam(CONDITION_PARAM_SOULGAIN, 1);
-		condition->setParam(CONDITION_PARAM_SOULTICKS, vocation->getSoulGainTicks() * 1000);
-		addCondition(condition);
-	}
-
-	if (applyStages) {
-		exp *= g_game.getExperienceStage(level);
-	}
+	g_events->eventPlayerOnGainExperience(this, source, exp, rawExp);
 
 	if (exp == 0) {
 		return;
@@ -1367,6 +1363,11 @@ void Player::removeExperience(uint64_t exp)
 		return;
 	}
 
+	g_events->eventPlayerOnLoseExperience(this, exp);
+	if (exp == 0) {
+		return;
+	}
+	
 	experience = std::max<int64_t>(0, experience - exp);
 
 	uint32_t oldLevel = level;
@@ -1641,7 +1642,8 @@ void Player::death(Creature* lastHitCreature)
 
 		//Level loss
 		uint64_t expLoss = static_cast<uint64_t>(experience * deathLossPercent);
-
+		g_events->eventPlayerOnLoseExperience(this, expLoss);
+		
 		if (expLoss != 0) {
 			uint32_t oldLevel = level;
 
@@ -2716,10 +2718,10 @@ void Player::internalAddThing(uint32_t index, Thing* thing)
 uint32_t Player::checkPlayerKilling()
 {
 	time_t today = std::time(nullptr);
-	uint32_t lastDay = 0;
-	uint32_t lastWeek = 0;
-	uint32_t lastMonth = 0;
-	uint64_t egibleMurders = 0;
+	int32_t lastDay = 0;
+	int32_t lastWeek = 0;
+	int32_t lastMonth = 0;
+	int64_t egibleMurders = 0;
 
 	time_t dayTimestamp = today - (24 * 60 * 60);
 	time_t weekTimestamp = today - (7 * 24 * 60 * 60);
@@ -3133,13 +3135,13 @@ bool Player::onKilledCreature(Creature* target, bool lastHit/* = true*/)
 	return unjustified;
 }
 
-void Player::gainExperience(uint64_t gainExp)
+void Player::gainExperience(uint64_t gainExp, Creature* source)
 {
 	if (hasFlag(PlayerFlag_NotGainExperience) || gainExp == 0) {
 		return;
 	}
 
-	addExperience(gainExp, true);
+	addExperience(source, gainExp, true);
 }
 
 void Player::onGainExperience(uint64_t gainExp, Creature* target)
@@ -3149,18 +3151,18 @@ void Player::onGainExperience(uint64_t gainExp, Creature* target)
 	}
 
 	if (target && !target->getPlayer() && party && party->isSharedExperienceActive() && party->isSharedExperienceEnabled()) {
-		party->shareExperience(gainExp);
+		party->shareExperience(gainExp, target);
 		//We will get a share of the experience through the sharing mechanism
 		return;
 	}
 
 	Creature::onGainExperience(gainExp, target);
-	gainExperience(gainExp);
+	gainExperience(gainExp, target);
 }
 
-void Player::onGainSharedExperience(uint64_t gainExp)
+void Player::onGainSharedExperience(uint64_t gainExp, Creature* source)
 {
-	gainExperience(gainExp);
+	gainExperience(gainExp, source);
 }
 
 bool Player::isImmune(CombatType_t type) const
@@ -3207,7 +3209,11 @@ void Player::changeHealth(int32_t healthChange, bool sendHealthChange/* = true*/
 void Player::changeMana(int32_t manaChange)
 {
 	if (!hasFlag(PlayerFlag_HasInfiniteMana)) {
-		Creature::changeMana(manaChange);
+		if (manaChange > 0) {
+			mana += std::min<int32_t>(manaChange, getMaxMana() - mana);
+		} else {
+			mana = std::max<int32_t>(0, mana + manaChange);
+		}
 	}
 
 	sendStats();
@@ -3320,6 +3326,18 @@ void Player::addAttacked(const Player* attacked)
 	}
 
 	attackedSet.insert(attacked->id);
+}
+
+void Player::removeAttacked(const Player* attacked)
+{
+	if (!attacked || attacked == this) {
+		return;
+	}
+
+	auto it = attackedSet.find(attacked->guid);
+	if (it != attackedSet.end()) {
+		attackedSet.erase(it);
+	}
 }
 
 void Player::clearAttacked()

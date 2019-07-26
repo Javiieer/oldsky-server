@@ -402,7 +402,7 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing &thing, Item**
 	if (!item) {
 		return this;
 	}
-
+	
 	if (g_config.getBoolean(ConfigManager::STACK_CUMULATIVES)) {
 		bool autoStack = !hasBitSet(FLAG_IGNOREAUTOSTACK, flags);
 		if (autoStack && item->isStackable() && item->getParent() != this) {

@@ -77,6 +77,9 @@ bool ConfigManager::load()
 	boolean[CONVERT_UNSAFE_SCRIPTS] = getGlobalBoolean(L, "convertUnsafeScripts", true);
 	boolean[TELEPORT_NEWBIES] = getGlobalBoolean(L, "teleportNewbies", true);
 	boolean[STACK_CUMULATIVES] = getGlobalBoolean(L, "autoStackCumulatives", false);
+	boolean[BLOCK_HEIGHT] = getGlobalBoolean(L, "blockHeight", false);
+	boolean[UH_TRAP] = getGlobalBoolean(L, "uhTrap", false);
+	boolean[DROP_ITEMS] = getGlobalBoolean(L, "dropItems", false);
 	boolean[QUERY_PLAYER_CONTAINERS] = getGlobalBoolean(L, "queryPlayerContainers", false);
 
 	string[DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");

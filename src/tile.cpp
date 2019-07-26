@@ -100,6 +100,25 @@ bool Tile::hasHeight(uint32_t n) const
 	return false;
 }
 
+int32_t Tile::getHeight() {
+	int32_t height = 0;
+	if (ground) {
+		if (ground->hasProperty(CONST_PROP_HASHEIGHT)) {
+			++height;
+		}
+	}
+
+	if (const TileItemVector* items = getItemList()) {
+		for (ItemVector::const_iterator it = items->begin(); it != items->end(); ++it) {
+			if ((*it)->hasProperty(CONST_PROP_HASHEIGHT)) {
+				++height;
+			}
+		}
+	}
+
+	return std::min(height, 4);
+}
+
 size_t Tile::getCreatureCount() const
 {
 	if (const CreatureVector* creatures = getCreatures()) {
@@ -223,6 +242,16 @@ Creature* Tile::getTopCreature() const
 	return nullptr;
 }
 
+Creature* Tile::getBottomCreatureUH() const
+{
+	if (const CreatureVector* creatures = getCreatures()) {
+		if (!creatures->empty()) {
+			return *creatures->rbegin();
+		}
+	}
+	return nullptr;
+}
+
 const Creature* Tile::getBottomCreature() const
 {
 	if (const CreatureVector* creatures = getCreatures()) {
@@ -253,6 +282,35 @@ Creature* Tile::getTopVisibleCreature(const Creature* creature) const
 					const Player* player = tileCreature->getPlayer();
 					if (!player || !player->isInGhostMode()) {
 						return tileCreature;
+					}
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+
+Creature* Tile::getBottomVisibleCreatureUH(const Creature* creature) const
+{
+	if (const CreatureVector* creatures = getCreatures()) {
+		if (creature) {
+			const Player* player = creature->getPlayer();
+			if (player && player->isAccessPlayer()) {
+				return getBottomCreatureUH();
+			}
+
+			for (auto it = creatures->rbegin(), end = creatures->rend(); it != end; ++it) {
+				if (creature->canSeeCreature(*it)) {
+					return *it;
+				}
+			}
+		}
+		else {
+			for (auto it = creatures->rbegin(), end = creatures->rend(); it != end; ++it) {
+				if (!(*it)->isInvisible()) {
+					const Player* player = (*it)->getPlayer();
+					if (!player || !player->isInGhostMode()) {
+						return *it;
 					}
 				}
 			}
@@ -1459,22 +1517,17 @@ bool Tile::isMoveableBlocking() const
 	return !ground || hasFlag(TILESTATE_BLOCKSOLID);
 }
 
-Item* Tile::getUseItem() const
+Item* Tile::getUseItem(int32_t index) const
 {
 	const TileItemVector* items = getItemList();
 	if (!items || items->size() == 0) {
 		return ground;
 	}
 
-	for (Item* item : boost::adaptors::reverse(*items)) {
-		if (Item::items[item->getID()].forceUse) {
-			return item;
+	if (Thing* thing = getThing(index)) {
+		return thing->getItem();
 		}
 	}
 
-	Item* item = items->getTopDownItem();
-	if (!item) {
-		item = items->getTopTopItem();
-	}
-	return item;
+	return nullptr;
 }

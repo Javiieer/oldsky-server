@@ -22,7 +22,7 @@
 
 static constexpr auto STATUS_SERVER_NAME = "Oldsky Server";
 static constexpr auto STATUS_SERVER_VERSION = "1.0";
-static constexpr auto STATUS_SERVER_DEVELOPERS = "SkydriveStudios";
+static constexpr auto STATUS_SERVER_DEVELOPERS = "SkydriveStudios C.A";
 
 static constexpr auto CLIENT_VERSION_MIN = 772;
 static constexpr auto CLIENT_VERSION_MAX = 772;
@@ -57,7 +57,7 @@ static constexpr auto CLIENT_VERSION_STR = "7.72";
 #pragma warning(disable:4267) // 'var' : conversion from 'size_t' to 'type', possible loss of data
 #pragma warning(disable:4351) // new behavior: elements of array will be default initialized
 #pragma warning(disable:4458) // declaration hides class member
-#pragma warning(disable:4018) // signed/unsigned mismatch
+#pragma warning(disable:4996) // inetpton warning
 #endif
 
 #define strcasecmp _stricmp
