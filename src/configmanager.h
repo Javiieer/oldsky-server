@@ -44,6 +44,7 @@ class ConfigManager
 			UH_TRAP,
 			DROP_ITEMS,
 			QUERY_PLAYER_CONTAINERS,
+			FULL_RL_MODE,
 
 			LAST_BOOLEAN_CONFIG /* this must be the last one */
 		};

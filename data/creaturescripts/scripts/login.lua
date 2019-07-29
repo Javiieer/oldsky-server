@@ -8,7 +8,7 @@ function onLogin(player)
 			player:sendTextMessage(MESSAGE_STATUS_DEFAULT, loginStr)
 		end
 
-		loginStr = string.format("Your last visit on Nostalrius: %s.", os.date("%a %b %d %X %Y", player:getLastLoginSaved()))
+		loginStr = string.format("Your last visit was: %s.", os.date("%a %b %d %X %Y", player:getLastLoginSaved()))
 	end
 	player:sendTextMessage(MESSAGE_STATUS_DEFAULT, loginStr)
 

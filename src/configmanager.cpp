@@ -81,6 +81,9 @@ bool ConfigManager::load()
 	boolean[UH_TRAP] = getGlobalBoolean(L, "uhTrap", false);
 	boolean[DROP_ITEMS] = getGlobalBoolean(L, "dropItems", false);
 	boolean[QUERY_PLAYER_CONTAINERS] = getGlobalBoolean(L, "queryPlayerContainers", false);
+	
+	// Shagz
+	boolean[FULL_RL_MODE] = getGlobalBoolean(L, "fullRLMode", false);
 
 	string[DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	string[SERVER_NAME] = getGlobalString(L, "serverName", "");
